@@ -28,7 +28,7 @@
               href="#"
               class="text-gray-900 hover:text-indigo-600 inline-flex items-center px-1 pt-1 text-sm font-medium"
             >
-              Services
+              ResepKu
             </a>
             <a
               href="#"
@@ -41,12 +41,12 @@
 
         <!-- Login Button -->
         <div class="flex items-center">
-          <router-link
-            to="/login"
-            class="text-sm font-semibold text-gray-900 hover:text-indigo-600"
-          >
+          <router-link v-if="!isLoggedIn" to="/login" class="text-sm font-semibold text-gray-900 hover:text-indigo-600">
             Log in <span aria-hidden="true">&rarr;</span>
           </router-link>
+          <button v-else @click="handleLogout" class="text-sm font-semibold text-gray-900 hover:text-indigo-600">
+            Logout <span aria-hidden="true">&larr;</span>
+          </button>
         </div>
       </div>
     </div>
@@ -66,6 +66,22 @@
   <div class="main-content py-10">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
       <h2 class="text-3xl font-bold text-gray-900 mb-6">Recipe Collection</h2>
+
+      <div class="mb-6 flex">
+        <input
+          type="text"
+          v-model="searchQuery"
+          @input="filterRecipes"
+          placeholder="Search for recipes..."
+          class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
+        />
+        <button
+          @click="filterRecipes"
+          class="ml-3 px-4 py-2 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+        >
+          Search
+        </button>
+      </div>
 
       <!-- Recipe Grid -->
       <div class="recipe-grid">
@@ -88,7 +104,10 @@ export default {
   name: "Home",
   data() {
     return {
-      recipes: []
+      recipes: [],
+      searchQuery: "", 
+      filteredRecipes: [],
+      isLoggedIn: false
     };
   },
   mounted() {
@@ -100,7 +119,7 @@ export default {
         const response = await axios.get(`https://api.spoonacular.com/recipes/random`, {
           params: {
             number: 20, // jumlah resep yang ditampilkan
-            apiKey: "7cfa6262a29f4f30989581822849929f" // Ganti dengan API key Spoonacular milikmu
+            apiKey: "7cfa6262a29f4f30989581822849929f" 
           }
         });
         this.recipes = response.data.recipes;
@@ -115,12 +134,11 @@ export default {
 <style scoped>
 .home-background {
   background-image: url('../assets/background-makanan.jpg');
-  background-size: contain; /* Mengubah dari cover ke contain */
-  /* Atau jika ingin menggunakan persentase, Anda bisa menggunakan: */
-  background-size: 100%;
+  background-size: contain; 
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  height: 600px; /* Tinggi gambar tetap sama */
+  height: 600px; 
   display: flex;
   align-items: center;
   justify-content: center;

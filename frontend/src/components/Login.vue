@@ -1,81 +1,96 @@
 <template>
-    <div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 mt-40">
-      <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h1 class="text-center text-2xl font-bold text-indigo-600">Masak Yuk</h1>
-        <h2 class="mt-10 text-center text-2xl font-bold tracking-tight text-gray-900">Sign in to your account</h2>
+  <div class="max-w-md mx-auto mt-20 sm:mt-32 lg:mt-40 px-4">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Login</h1>
+    <p class="mt-4 text-gray-600 text-sm sm:text-base">Masukkan kredensial Anda untuk login.</p>
+
+    <form @submit.prevent="submitForm" class="mt-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Email</label>
+        <input 
+          v-model="form.email" 
+          type="email" 
+          required
+          class="mt-1 block w-full px-3 py-2 border rounded-md text-sm sm:text-base" 
+          placeholder="Masukkan email" 
+        />
       </div>
-      <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form class="space-y-6" @submit.prevent="handleLogin">
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-900">Email address</label>
-            <div class="mt-2">
-              <input 
-                id="email" 
-                v-model="email"
-                name="email" 
-                type="email" 
-                autocomplete="email" 
-                required 
-                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-              >
-            </div>
-          </div>
-  
-          <div>
-            <div class="flex items-center justify-between">
-              <label for="password" class="block text-sm font-medium text-gray-900">Password</label>
-              <div class="text-sm">
-                <a href="#" class="font-semibold text-indigo-600 hover:text-indigo-500">Forgot password?</a>
-              </div>
-            </div>
-            <div class="mt-2">
-              <input 
-                id="password" 
-                v-model="password"
-                name="password" 
-                type="password" 
-                autocomplete="current-password" 
-                required 
-                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-              >
-            </div>
-          </div>
-  
-          <div>
-            <button 
-              type="submit" 
-              class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            >
-              Sign in
-            </button>
-          </div>
-        </form>
-  
-        <p class="mt-10 text-center text-sm text-gray-500">
-          Not a member?
-          <router-link to="/register" class="text-indigo-600 hover:underline">
-            Sign Up Here
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Password</label>
+        <input 
+          v-model="form.password" 
+          type="password" 
+          required
+          class="mt-1 block w-full px-3 py-2 border rounded-md text-sm sm:text-base" 
+          placeholder="Masukkan password" 
+        />
+      </div>
+
+      <div v-if="error" class="text-red-600 text-sm">
+        {{ error }}
+      </div>
+
+      <div>
+        <button 
+          type="submit" 
+          class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 text-sm sm:text-base"
+        >
+          Login
+        </button>
+      </div>
+
+      <div class="text-center mt-4">
+        <router-link 
+          to="/register" 
+          class="text-indigo-600 hover:text-indigo-800 text-sm sm:text-base"
+        >
+          Belum punya akun? Daftar di sini
         </router-link>
-        </p>
       </div>
-    </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'Login',
-    data() {
-      return {
+    </form>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  name: 'Login',
+  data() {
+    return {
+      form: {
         email: '',
         password: ''
-      }
-    },
-    methods: {
-      handleLogin() {
-        // Implement login logic here
-        console.log('Login attempt with:', this.email, this.password)
-        // You would typically make an API call here
+      },
+      error: null
+    };
+  },
+  methods: {
+    async submitForm() {
+      try {
+        this.error = null;
+        
+        // Mengirim data ke backend untuk autentikasi
+        const response = await axios.post('http://localhost:8080/api/login', this.form);
+        const user = response.data.user;
+
+        // Menyimpan data user ke localStorage
+        localStorage.setItem('user', JSON.stringify(user));
+
+        // Redirect berdasarkan peran
+        if (user.role === 'admin') {
+          this.$router.push({ path: `/home/admin` });
+        } else if (user.role === 'author') {
+          this.$router.push({ path: `/home/author` });
+        } else {
+          this.$router.push({ path: `/home` });
+        }
+        
+      } catch (error) {
+        console.error('Login error:', error);
+        this.error = error.response?.data?.message || 'Terjadi kesalahan saat login';
       }
     }
   }
-  </script>
+};
+</script>
